@@ -14,7 +14,7 @@ const getUsers = () => request(app).get('/');
 
 const createUserHash = (email = 'galileo@email.com') => hash(email);
 
-const createUser = async (editedUser = {}) => {
+const createUser = async (editedUser = {}, ignoreDefaults = false) => {
   const defaultUser = {
     firstName: 'Galileo',
     lastName: 'Galilei',
@@ -30,8 +30,9 @@ const createUser = async (editedUser = {}) => {
     },
   };
 
-  // If the user sends use any user properties, override the default values.  If not, use default as is.
-  const user = new User({ ...defaultUser, ...editedUser });
+  // If the user sends use any user properties, override the default values.
+  // unless explicitly told not to. If not, use default as is.
+  const user = ignoreDefaults ? new User(editedUser) : new User({ ...defaultUser, ...editedUser });
   const response = await request(app)
     .post(`/${user.id}`)
     .set('Content-Type', 'application/json')
@@ -222,6 +223,58 @@ describe('POST REQUESTS', () => {
       .set('Content-Type', 'application/json')
       .send(user.toObject());
 
+    expect(response.statusCode).toBe(400);
+  });
+
+  test('Accepted - Ensure users without GitHub data can be created correctly', async () => {
+    const user = {
+      firstName: 'Galileo',
+      lastName: 'Galilei',
+      email: 'galileo@email.com',
+      displayName: 'Galileo Galilei',
+      isAdmin: true,
+      isFlagged: true,
+      feeds: ['https://dev.to/feed/galileogalilei'],
+    };
+
+    const { response } = await createUser(user, true);
+    expect(response.statusCode).toBe(201);
+  });
+
+  test('Rejected - Ensure users with GitHub username but without avatarUrl are not allowed', async () => {
+    const user = {
+      firstName: 'Galileo',
+      lastName: 'Galilei',
+      email: 'galileo@email.com',
+      displayName: 'Galileo Galilei',
+      isAdmin: true,
+      isFlagged: true,
+      feeds: ['https://dev.to/feed/galileogalilei'],
+      github: {
+        username: 'galileogalilei',
+      },
+    };
+
+    const { response } = await createUser(user, true);
+    expect(response.statusCode).toBe(400);
+  });
+
+  test('Rejected - Ensure users without GitHub username but with avatarUrl are not allowed', async () => {
+    const user = {
+      firstName: 'Galileo',
+      lastName: 'Galilei',
+      email: 'galileo@email.com',
+      displayName: 'Galileo Galilei',
+      isAdmin: true,
+      isFlagged: true,
+      feeds: ['https://dev.to/feed/galileogalilei'],
+      github: {
+        avatarUrl:
+          'https://avatars.githubusercontent.com/u/7242003?s=460&u=733c50a2f50ba297ed30f6b5921a511c2f43bfee&v=4',
+      },
+    };
+
+    const { response } = await createUser(user, true);
     expect(response.statusCode).toBe(400);
   });
 

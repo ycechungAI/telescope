@@ -16,7 +16,7 @@ router.get('/:id', validateId(), async (req, res, next) => {
     const doc = await userRef.get();
 
     if (!doc.exists) {
-      next(createError(404, `user ${id}) not be found.`));
+      next(createError(404, `user ${id}) not found.`));
     } else {
       res.status(200).json(doc.data());
     }
@@ -74,7 +74,7 @@ router.put('/:id', validateId(), validateUser(), async (req, res, next) => {
     const doc = await userRef.get();
 
     if (!doc.exists) {
-      next(createError(404, `user ${id}) not be found.`));
+      next(createError(404, `user ${id}) not found.`));
     } else {
       const user = new User(req.body);
       await db.collection('users').doc(id).update(user.toObject());
@@ -95,11 +95,11 @@ router.delete('/:id', validateId(), async (req, res, next) => {
     const doc = await userRef.get();
 
     if (!doc.exists) {
-      next(createError(404, `user ${id}) not be found.`));
+      next(createError(404, `user ${id}) not found.`));
     } else {
       await db.collection('users').doc(id).delete();
       res.status(200).json({
-        msg: `User ${id}) was removed.`,
+        msg: `User ${id} was removed.`,
       });
     }
   } catch (err) {

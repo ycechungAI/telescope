@@ -24,6 +24,16 @@ describe('User Model', () => {
     Object.entries(data).map(([key, value]) => expect(user[key]).toEqual(value));
   });
 
+  test('constructor should deal with missing github property', () => {
+    const userData = { ...data };
+    delete userData.github;
+
+    const user = new User(userData);
+    // Loop over all the key/value properties in data, and compare with what's in user
+    Object.entries(userData).map(([key, value]) => expect(user[key]).toEqual(value));
+    expect(user.github).toBe(undefined);
+  });
+
   test('id should return the hashed email in the form we expect', () => {
     const user = new User(data);
     const expectedId = hash(data.email);
@@ -36,6 +46,15 @@ describe('User Model', () => {
     expect(typeof o === 'object').toBe(true);
     // Make sure this object doesn't have its own custom prototype
     expect(Object.getPrototypeOf(o) === Object.prototype).toBe(true);
+  });
+
+  test('toObject() should exclude github property if not present on instance', () => {
+    const userData = { ...data };
+    delete userData.github;
+
+    const user = new User(userData);
+    const o = user.toObject();
+    expect(o.github).toBe(undefined);
   });
 
   test('should be able to round-trip a user through toObject() and ctor', () => {

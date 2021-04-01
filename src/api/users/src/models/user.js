@@ -10,7 +10,11 @@ class User {
     this.isAdmin = data.isAdmin === true;
     this.isFlagged = data.isFlagged === true;
     this.feeds = data.feeds;
-    this.github = data.github;
+
+    // Legacy users won't have GitHub info
+    if (data.github) {
+      this.github = data.github;
+    }
   }
 
   // A user's id is the hash of their email, using the Satellite hash() function.
@@ -21,7 +25,7 @@ class User {
   // Convenience for creating an Object Firestore can consume (i.e, can't
   // be an object with a prototype).
   toObject() {
-    return {
+    const user = {
       email: this.email,
       firstName: this.firstName,
       lastName: this.lastName,
@@ -29,8 +33,14 @@ class User {
       isAdmin: this.isAdmin,
       isFlagged: this.isFlagged,
       feeds: this.feeds,
-      github: this.github,
     };
+
+    // Only include github if it's populated
+    if (this.github) {
+      user.github = this.github;
+    }
+
+    return user;
   }
 }
 

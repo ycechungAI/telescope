@@ -23,7 +23,7 @@ const validateUser = () =>
       github: Joi.object({
         username: Joi.string(),
         avatarUrl: Joi.string().uri(),
-      }),
+      }).and('username', 'avatarUrl'),
     }),
   });
 
